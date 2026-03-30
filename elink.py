@@ -190,7 +190,31 @@ async def _scan_with_live(ev: asyncio.Event, start: float, scan_timeout: float, 
             await asyncio.sleep(0.25)
 
 
+async def _try_direct_connect(address: str, attempts: int = 3) -> BleakClient | None:
+    """跳过扫描，直接按地址连接（CoreBluetooth 缓存过的设备有效）"""
+    for i in range(attempts):
+        client = BleakClient(address)
+        try:
+            await client.connect(timeout=10.0)
+            return client
+        except Exception as e:
+            console.print(f"  [dim]直连尝试 {i+1}/{attempts}: {e}[/dim]")
+            if i < attempts - 1:
+                await asyncio.sleep(1.0)
+    return None
+
+
 async def find_and_connect(address: str | None, scan_timeout: float = 30.0) -> BleakClient:
+    # ── 快速路径：有地址先直连，无需等广播 ──────────────────────────
+    if address:
+        with console.status(f"[bold]直连 [cyan]{address}[/cyan]...[/bold]"):
+            client = await _try_direct_connect(address)
+        if client:
+            console.print(f"[green]✓[/green] 直连成功")
+            return client
+        console.print("[yellow]直连失败，回退到扫描模式...[/yellow]")
+
+    # ── 扫描模式（无地址 或 直连失败） ───────────────────────────────
     found = None
     ev    = asyncio.Event()
 
@@ -204,8 +228,8 @@ async def find_and_connect(address: str | None, scan_timeout: float = 30.0) -> B
     scanner = BleakScanner(detection_callback=on_detect)
     await scanner.start()
 
-    start       = time.monotonic()
-    live_task   = asyncio.create_task(_scan_with_live(ev, start, scan_timeout, address))
+    start     = time.monotonic()
+    live_task = asyncio.create_task(_scan_with_live(ev, start, scan_timeout, address))
     try:
         await asyncio.wait_for(ev.wait(), timeout=scan_timeout)
     except asyncio.TimeoutError:
