@@ -339,113 +339,143 @@ def fetch_usage(token: str) -> dict | None:
         return None
 
 
-def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    for path in ["/System/Library/Fonts/HelveticaNeue.ttc", "/Library/Fonts/Arial.ttf"]:
-        try:
-            return ImageFont.truetype(path, size, index=1 if bold else 0)
-        except Exception:
-            pass
-    return ImageFont.load_default()
-
-
 def _fmt_resets(iso: str | None) -> str:
     if not iso:
-        return ""
+        return "—"
     dt = datetime.fromisoformat(iso).astimezone()
     s  = (dt - datetime.now(timezone.utc).astimezone()).total_seconds()
     if s <= 0:
-        return "Resetting now"
+        return "Now"
     h, rem = divmod(int(s), 3600)
     m = rem // 60
-    return f"Resets in {h}h {m}m" if h < 24 else f"Resets {dt.strftime('%a %-I:%M %p')}"
+    return f"{h}h {m}m" if h < 24 else dt.strftime("%a %-I%p").upper()
 
 
 def render_usage_image(out: str = "/tmp/usage_display.png") -> str:
-    BG    = (248, 246, 242)
-    BLACK = (15,  15,  15)
+    # ── Colors ────────────────────────────────────────────────────────
+    BG    = (252, 252, 250)
+    BLACK = (8,   8,   8)
     WHITE = (255, 255, 255)
-    DGRAY = (100, 100, 100)
-    LGRAY = (205, 205, 205)
-    TRACK = (225, 225, 225)
-    BLUE  = (70,  120, 210)
-    RED   = (200, 50,  50)
+    GRAY  = (120, 120, 120)
+    LGRAY = (218, 218, 218)  # bar track (renders as white on e-ink, keeps outline)
+    RED   = (190, 30,  30)
 
+    # ── Data ──────────────────────────────────────────────────────────
     token = get_oauth_token()
     api   = fetch_usage(token) if token else None
-
     if not token:
-        console.print("[yellow]未找到 OAuth Token（用 elink config set-token 或 elink setup 配置）[/yellow]")
+        console.print("[yellow]未找到 OAuth Token（用 elink setup 配置）[/yellow]")
 
     fh   = (api or {}).get("five_hour")       or {}
     sd   = (api or {}).get("seven_day")        or {}
     sd_s = (api or {}).get("seven_day_sonnet") or {}
 
-    W, H, P = 400, 300, 16
-    BW, BH  = W - 2 * P, 18
-
+    # ── Canvas ────────────────────────────────────────────────────────
+    W, H, P = 400, 300, 14
+    BAR_H   = 30
     img = Image.new("RGB", (W, H), BG)
     d   = ImageDraw.Draw(img)
 
-    HDR = 34
-    d.rectangle([0, 0, W - 1, HDR - 1], fill=BLACK)
-    d.text((P, HDR // 2), "Plan Usage Limits",
-           font=_font(17, True), fill=WHITE, anchor="lm")
-    d.text((W - P, HDR // 2), date.today().strftime("%-d %b"),
-           font=_font(13), fill=(175, 175, 175), anchor="rm")
+    # ── Fonts (monospace: Menlo → Monaco → fallback) ──────────────────
+    def mono(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+        candidates = [
+            ("/System/Library/Fonts/Menlo.ttc",    1 if bold else 0),
+            ("/System/Library/Fonts/Monaco.ttf",   0),
+            ("/System/Library/Fonts/Courier.ttc",  1 if bold else 0),
+            ("/System/Library/Fonts/HelveticaNeue.ttc", 1 if bold else 0),
+        ]
+        for path, idx in candidates:
+            try:
+                return ImageFont.truetype(path, size, index=idx)
+            except Exception:
+                pass
+        return ImageFont.load_default()
 
-    y = HDR + 8
+    # ── Header block ──────────────────────────────────────────────────
+    HDR_H = 54
+    d.rectangle([0, 0, W, HDR_H], fill=BLACK)
+    d.text((P, HDR_H // 2), "CC  USAGE",
+           font=mono(26, bold=True), fill=WHITE, anchor="lm")
+    d.text((W - P, HDR_H // 2 - 7),
+           datetime.now().strftime("%H:%M"),
+           font=mono(14), fill=(175, 175, 175), anchor="rm")
+    d.text((W - P, HDR_H // 2 + 8),
+           date.today().strftime("%-d %b"),
+           font=mono(11), fill=(140, 140, 140), anchor="rm")
 
-    def pbar(by: int, pct: float, color=BLUE):
-        r = BH // 2
-        d.rounded_rectangle([P, by, P + BW, by + BH], radius=r, fill=TRACK)
-        fw = max(int(pct * BW), r * 2 if pct > 0.01 else 0)
-        if fw:
-            d.rounded_rectangle([P, by, P + fw, by + BH], radius=r, fill=color)
+    # ── Helpers ───────────────────────────────────────────────────────
+    def dashed(y: int, x1: int, x2: int):
+        x = x1
+        while x < x2:
+            d.line([x, y, min(x + 4, x2), y], fill=GRAY, width=1)
+            x += 7
 
-    def section(sy: int, label: str, sub: str, pct: float, pct_str: str, bar_color=BLUE) -> int:
-        d.text((P, sy),      label,   font=_font(20, True), fill=BLACK)
-        d.text((W - P, sy),  pct_str, font=_font(20, True), fill=BLACK, anchor="rt")
-        d.text((P, sy + 24), sub,     font=_font(13),        fill=DGRAY)
-        by = sy + 42
-        pbar(by, pct, bar_color)
-        return by + BH
+    def row_header(y: int, label: str, reset_str: str) -> int:
+        lf = mono(11, bold=True)
+        rf = mono(11)
+        lw = int(d.textlength(label, font=lf))
+        rw = int(d.textlength(reset_str, font=rf))
+        d.text((P, y), label, font=lf, fill=BLACK)
+        dashed(y + 7, P + lw + 6, W - P - rw - 6)
+        d.text((W - P, y), reset_str, font=rf, fill=GRAY, anchor="rt")
+        return y + 20
 
-    util_fh      = (fh.get("utilization") or 0) / 100
-    bar_color_fh = RED if util_fh >= 0.8 else BLUE
+    def bar_row(y: int, label: str, pct: float, pct_str: str,
+                fill_color=BLACK) -> int:
+        LW = 30   # label column
+        PW = 48   # percent column
+        bx = P + LW + 6
+        bw = W - P - LW - PW - 12
 
-    bottom = section(
-        y,
-        "Current session",
-        _fmt_resets(fh.get("resets_at")) if fh else "No data",
-        util_fh,
-        f"{fh.get('utilization', 0):.0f}% used" if fh else "—",
-        bar_color_fh,
-    )
-    y = bottom + 10
-    d.line([P, y, W - P, y], fill=LGRAY, width=1)
-    y += 8
+        # row label (5H / 7D)
+        d.text((P, y + (BAR_H - 15) // 2),
+               label, font=mono(14, bold=True), fill=BLACK)
 
-    d.text((P, y), "Weekly limits", font=_font(15, True), fill=BLACK)
-    y += 22
+        # bar track: outline only (interior = LGRAY → white on e-ink)
+        d.rectangle([bx, y, bx + bw, y + BAR_H],
+                    outline=BLACK, width=1, fill=LGRAY)
 
-    bottom2 = section(
-        y,
-        "All models",
-        _fmt_resets(sd.get("resets_at")) if sd else "Resets Wed 8:00 PM",
-        (sd.get("utilization") or 0) / 100,
-        f"{sd.get('utilization', 0):.0f}% used" if sd else "—",
-    )
-    y = bottom2 + 10
-    d.line([P, y, W - P, y], fill=LGRAY, width=1)
-    y += 8
+        # fill
+        if pct > 0.001:
+            fw = max(int(pct * (bw - 2)), 2)
+            d.rectangle([bx + 1, y + 1, bx + fw, y + BAR_H - 1],
+                        fill=fill_color)
 
-    section(
-        y,
-        "Sonnet only",
-        _fmt_resets(sd_s.get("resets_at")) if sd_s else "Resets Wed 8:00 PM",
-        (sd_s.get("utilization") or 0) / 100,
-        f"{sd_s.get('utilization', 0):.0f}% used" if sd_s else "—",
-    )
+        # percentage
+        d.text((W - P, y + (BAR_H - 15) // 2),
+               pct_str, font=mono(14, bold=True), fill=fill_color, anchor="rt")
+
+        return y + BAR_H + 8
+
+    # ── Sections ──────────────────────────────────────────────────────
+    y = HDR_H + 10
+
+    # SESSION (5-hour)
+    fh_pct = (fh.get("utilization") or 0) / 100
+    fh_col = RED if fh_pct >= 0.8 else BLACK
+    fh_str = f"{fh.get('utilization', 0):.0f}%" if fh else "—"
+    fh_rst = _fmt_resets(fh.get("resets_at")) if fh else "No data"
+
+    y = row_header(y, "SESSION", f"Resets {fh_rst}")
+    y = bar_row(y, "5H", fh_pct, fh_str, fh_col)
+    y += 10
+
+    # WEEKLY — All models
+    sd_pct = (sd.get("utilization") or 0) / 100
+    sd_str = f"{sd.get('utilization', 0):.0f}%" if sd else "—"
+    sd_rst = _fmt_resets(sd.get("resets_at")) if sd else "—"
+
+    y = row_header(y, "ALL MODELS", f"Resets {sd_rst}")
+    y = bar_row(y, "7D", sd_pct, sd_str)
+    y += 10
+
+    # WEEKLY — Sonnet
+    ss_pct = (sd_s.get("utilization") or 0) / 100
+    ss_str = f"{sd_s.get('utilization', 0):.0f}%" if sd_s else "—"
+    ss_rst = _fmt_resets(sd_s.get("resets_at")) if sd_s else "—"
+
+    y = row_header(y, "SONNET", f"Resets {ss_rst}")
+    y = bar_row(y, "7D", ss_pct, ss_str)
 
     img.save(out)
     return out
